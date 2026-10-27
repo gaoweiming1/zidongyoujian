@@ -1,0 +1,35 @@
+name: 每日邮件提醒
+
+on:
+  # cron 用的是 UTC 时间！北京时间 = UTC + 8，所以要减 8 小时
+  # 想改时间就改下面的小时数，对照：
+  #   北京 08:00 → 0 0 * * *
+  #   北京 09:00 → 0 1 * * *
+  #   北京 12:00 → 0 4 * * *
+  #   北京 22:00 → 0 14 * * *
+  schedule:
+    - cron: '0 1 * * *'
+
+  # 加上这个，就能在 GitHub 网页上手动点一下立刻跑，调试时非常有用
+  workflow_dispatch:
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 这个脚本只用标准库，不需要 pip install，跑起来很快
+      - name: 发送邮件
+        env:
+          MAIL_USER: ${{ secrets.MAIL_USER }}
+          MAIL_PASS: ${{ secrets.MAIL_PASS }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python send_mail.py
